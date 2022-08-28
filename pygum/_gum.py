@@ -10,7 +10,10 @@ def _gum_runner(
     **kwargs,
 ) -> Union[CmdOutput, str, None]:
 
-    cmd_args: List[str] = ["gum", command]
+    if command != "filter":
+        cmd_args: List[str] = ["gum", command]
+    else:
+        cmd_args = ["echo", f"'{choices}'", "|", "gum", command]
 
     for k, v in kwargs.items():
         if v is None:
@@ -18,7 +21,7 @@ def _gum_runner(
         k = k.replace("_", "-")
         cmd_args.append(f"--{k}")
         cmd_args.append(str(v))
-    if choices:
+    if command != "filter" and choices:
         cmd_args.append(choices)
 
     result = command_wrapper(cmd_args)
@@ -90,7 +93,7 @@ def filter(
     height: Optional[int] = None,
     detailed: Optional[bool] = False,
 ) -> CmdOutput:
-    joined_choices = " ".join(f'"{str(c)}"' for c in choices)
+    joined_choices = "\n".join(f"{str(c)}" for c in choices)
 
     return _gum_runner(
         "filter",

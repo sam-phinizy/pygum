@@ -28,7 +28,8 @@ class CmdOutput:
 def command_wrapper(command: List[str]) -> CmdOutput:
     """A simple wrapper around check_checkpout"""
     try:
-        cmd_output = check_output(" ".join(command), shell=True)
+        cmd_joined = " ".join(command)
+        cmd_output = check_output(cmd_joined, shell=True)
     except CalledProcessError as e:
         return CmdOutput(e.output, e.returncode, command)
 
