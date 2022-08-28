@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "pygum"
+version = "0.1.0"
+description = "A wrapper around Gum: https://github.com/charmbracelet/gum"
+authors = ["Sam Phinizy <sam@phin.tech>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+
+[tool.poetry.dev-dependencies]
+pre-commit = "^2.20.0"
+pytest = "^7.1.2"
+black = "^22.6.0"
+nox-poetry = "^1.0.1"
+ptpython = "^3.0.20"
+ipykernel = "^6.15.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
