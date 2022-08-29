@@ -20,7 +20,8 @@ def _gum_runner(
             continue
         k = k.replace("_", "-")
         cmd_args.append(f"--{k}")
-        cmd_args.append(str(v))
+        if not isinstance(v, bool):
+            cmd_args.append(str(v))
     if command != "filter" and choices:
         cmd_args.append(choices)
 
@@ -32,17 +33,31 @@ def _gum_runner(
         return result.msg or None
 
 
-def input(
+def ginput(
+    *,
     placeholder: Optional[str] = None,
     prompt: Optional[str] = None,
     value: Optional[str] = None,
     char_limit: Optional[int] = None,
     width: Optional[int] = None,
     password: Optional[bool] = None,
-    detailed: Optional[bool] = False,
+    detailed: Optional[bool] = None,
 ) -> CmdOutput:
-    """Runs gum input"""
+    """
+    Get user entered input
+    Args:
+        placeholder:Placeholder value
+        prompt:Prompt to display
+        value:Initial value
+        char_limit: Maximum value length (0 for no limit)
+        width: Input width
+        password: If true mask input characters
+        detailed:If False return string, if True return CmdOutput
 
+    Returns:
+        A string or CmdOutput object with the entered text.
+
+    """
     return _gum_runner(
         "input",
         placeholder=placeholder,
@@ -108,6 +123,7 @@ def filter(
 
 
 def write(
+    *,
     width: Optional[int] = None,
     height: Optional[int] = None,
     placeholder: Optional[str] = None,
@@ -128,5 +144,24 @@ def write(
         show_line_numbers=show_line_numbers,
         value=value,
         char_limit=char_limit,
+        detailed=detailed,
+    )
+
+
+def confirm(
+    *,
+    prompt: Optional[str] = None,
+    affirmative: Optional[str] = None,
+    negative: Optional[str] = None,
+    default: Optional[bool] = None,
+    detailed: Optional[bool] = False,
+):
+
+    return _gum_runner(
+        "confirm",
+        prompt=prompt,
+        affirmative=affirmative,
+        negative=negative,
+        default=default,
         detailed=detailed,
     )
