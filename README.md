@@ -117,6 +117,14 @@ So `pygum.ginput` will have the following docstring:
                                      without a message.
 ```
 
+## Running Tests
+
+The project uses `pytest` for testing. Make sure you have `pytest` installed (it's included in the development dependencies). To run the tests, navigate to the project root directory and execute:
+
+```bash
+pytest
+```
+
 ## Todo
 
 (All major todos completed!)
