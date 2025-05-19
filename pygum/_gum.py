@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Any
 
 from pygum._command_wrapper import CmdOutput, command_wrapper
 
@@ -7,25 +7,35 @@ def _gum_runner(
     command: str,
     choices: Optional[str] = None,
     detailed: Optional[bool] = False,
-    **kwargs,
+    **kwargs: Any,
 ) -> Union[CmdOutput, str, None]:
 
-    if command != "filter":
-        cmd_args: List[str] = ["gum", command]
-    else:
-        cmd_args = ["echo", f"'{choices}'", "|", "gum", command]
+    cmd_args: List[str] = ["gum", command]
 
     for k, v in kwargs.items():
         if v is None:
             continue
+        
+        # First, replace double underscores with dots for style attributes
+        k = k.replace("__", ".")
+        # Then, replace single underscores with hyphens for general argument naming
         k = k.replace("_", "-")
+        
         cmd_args.append(f"--{k}")
-        if not isinstance(v, bool):
+        if not isinstance(v, bool): # Booleans are just flags, others have values
             cmd_args.append(str(v))
+
+    # For commands like 'choose', choices are appended directly to cmd_args.
+    # For 'filter', choices are passed via stdin.
     if command != "filter" and choices:
         cmd_args.append(choices)
 
-    result = command_wrapper(cmd_args)
+    if command == "filter":
+        # 'choices' here is the _gum_runner parameter, which for filter() call
+        # holds the string of choices separated by newlines.
+        result = command_wrapper(cmd_args, stdin_data=choices)
+    else:
+        result = command_wrapper(cmd_args)
 
     if detailed:
         return result
@@ -42,7 +52,7 @@ def ginput(
     width: Optional[int] = None,
     password: Optional[bool] = None,
     detailed: Optional[bool] = None,
-) -> CmdOutput:
+) -> Union[CmdOutput, str, None]:
     """
     Get user entered input
     Args:
@@ -81,7 +91,7 @@ def choose(
     limit: Optional[int] = None,
     no_limit: Optional[bool] = None,
     detailed: Optional[bool] = False,
-) -> CmdOutput:
+) -> Union[CmdOutput, str, None]:
     """Runs gum choice"""
     joined_choices = " ".join(f'"{str(c)}"' for c in choices)
     return _gum_runner(
@@ -107,7 +117,7 @@ def filter(
     width: Optional[int] = None,
     height: Optional[int] = None,
     detailed: Optional[bool] = False,
-) -> CmdOutput:
+) -> Union[CmdOutput, str, None]:
     joined_choices = "\n".join(f"{str(c)}" for c in choices)
 
     return _gum_runner(
@@ -133,7 +143,7 @@ def write(
     value: Optional[str] = None,
     char_limit: Optional[int] = None,
     detailed: Optional[bool] = False,
-) -> CmdOutput:
+) -> Union[CmdOutput, str, None]:
     return _gum_runner(
         "write",
         width=width,
@@ -155,7 +165,7 @@ def confirm(
     negative: Optional[str] = None,
     default: Optional[bool] = None,
     detailed: Optional[bool] = False,
-):
+) -> Union[CmdOutput, str, None]:
 
     return _gum_runner(
         "confirm",

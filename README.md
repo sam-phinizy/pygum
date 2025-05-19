@@ -56,21 +56,67 @@ Flags:
 
 The `pygum.ginput` (note: it's ginput not input to avoid shadowing) function exposes each of these as kwargs. In addition each function has a 'detailed' kwarg. If `False` it'll just return the parsed text, if `True` it returns the command argument.
 
+### Style Attributes and Other Flags
+
+`pygum` allows you to pass arbitrary `gum` styling flags (and other flags not explicitly defined as parameters in the Python functions) directly as keyword arguments. This provides flexibility to use all of `gum`'s styling capabilities.
+
+The convention for these flags is:
+- Python keyword arguments with double underscores (`__`) are translated into `gum` flags with dots (`.`). For example, `prompt__foreground="#FFA500"` becomes `--prompt.foreground "#FFA500"`.
+- Python keyword arguments with single underscores (`_`) are translated into `gum` flags with hyphens (`-`). For example, `char_limit=10` becomes `--char-limit 10`.
+- If a flag is a boolean `True` (e.g., `prompt__bold=True`), it's passed as just the flag (e.g., `--prompt.bold`). If `False`, the flag is omitted.
+
+**Examples:**
+
+```python
+import pygum
+
+# Example for ginput with style attributes
+user_input = pygum.ginput(
+    prompt="Enter value:",
+    placeholder="type here...",
+    # Style attributes for the prompt itself
+    prompt__foreground="magenta", # Sets --prompt.foreground
+    prompt__bold=True,            # Sets --prompt.bold
+    # Style attributes for the cursor
+    cursor__foreground="cyan"     # Sets --cursor.foreground
+)
+print(f"You entered: {user_input}")
+
+# Example for choose with style attributes
+choice = pygum.choose(
+    ["Option 1", "Option 2"],
+    header="Select an option:",
+    header__foreground="blue",        # Sets --header.foreground
+    selected__foreground="green",     # Sets --selected.foreground
+    cursor__align="left"              # Sets --cursor.align
+)
+print(f"You chose: {choice}")
+```
+
 So `pygum.ginput` will have the following docstring:
 
 ```text
     Get user entered input
     Args:
-        placeholder:Placeholder value
-        prompt:Prompt to display
-        value:Initial value
-        char_limit: Maximum value length (0 for no limit)
-        width: Input width
-        password: If true mask input characters
-        detailed:If False return string, if True return CmdOutput
+        placeholder: Placeholder value.
+        prompt: Prompt to display.
+        value: Initial value.
+        char_limit: Maximum value length (0 for no limit).
+        width: Input width.
+        password: If true mask input characters.
+        detailed: Optional. If False (default), returns the string output.
+                 If True, returns the full CmdOutput object.
+                 Returns None if the command fails and produces no message.
+        **kwargs: Additional keyword arguments for gum flags, including style attributes
+                 (e.g., `prompt__foreground="red"`, `cursor__bold=True`).
+
+    Returns:
+        Union[str, CmdOutput, None]: The user's input as a string (if detailed=False),
+                                     or a CmdOutput object (if detailed=True),
+                                     or None if the operation is cancelled or fails
+                                     without a message.
 ```
 
 ## Todo
 
-- Tests
-- Style attributes
+(All major todos completed!)

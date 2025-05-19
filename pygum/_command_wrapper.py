@@ -1,5 +1,5 @@
-from subprocess import CalledProcessError, check_output
-from typing import List
+import subprocess
+from typing import List, Optional
 
 
 class CmdOutput:
@@ -9,28 +9,36 @@ class CmdOutput:
         self.command: List[str] = cmd
 
     @property
-    def failed(self):
+    def failed(self) -> bool:
         return self.status != 0
 
-    @failed.setter
-    def failed(self, _):
-        pass
-
     @property
-    def success(self):
+    def success(self) -> bool:
         return self.status == 0
 
-    @success.setter
-    def success(self, _):
-        pass
 
-
-def command_wrapper(command: List[str]) -> CmdOutput:
-    """A simple wrapper around check_checkpout"""
+def command_wrapper(command: List[str], stdin_data: Optional[str] = None) -> CmdOutput:
+    """Executes a command using subprocess.run, optionally passing stdin."""
     try:
-        cmd_joined = " ".join(command)
-        cmd_output = check_output(cmd_joined, shell=True)
-    except CalledProcessError as e:
-        return CmdOutput(e.output, e.returncode, command)
+        process = subprocess.run(
+            command,
+            input=stdin_data.encode('utf-8') if stdin_data else None,
+            capture_output=True,
+            check=False,  # Handle non-zero exits manually
+            text=False  # Get bytes for stdout/stderr
+        )
+        stdout = process.stdout.decode('utf-8', errors='replace')
+        stderr = process.stderr.decode('utf-8', errors='replace')
 
-    return CmdOutput(cmd_output.decode("utf-8"), 0, command)
+        # Prioritize stdout; if empty, use stderr.
+        # This mirrors how e.output might have behaved (containing either stdout or stderr).
+        output_msg = stdout if stdout else stderr
+        
+        return CmdOutput(output_msg, process.returncode, command)
+
+    except Exception as e:
+        # Fallback for unexpected errors during subprocess execution (e.g., command not found)
+        # Note: subprocess.run with check=False and capture_output=True should be quite robust
+        # and typically not raise for many common issues like non-zero exit codes.
+        # FileNotFoundError (if command[0] is not found) is a primary candidate here.
+        return CmdOutput(str(e), -1, command) # Using -1 as a generic error status
